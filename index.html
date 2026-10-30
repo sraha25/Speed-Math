@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Speed Math Drill Pro Mobile</title>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --bg-page: #0b1120;
+            --surface: #1e293b;
+            --surface-sub: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #22c55e;
+            --error: #ef4444;
+            --border: #334155;
+            --gold: #facc15;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            width: 100vw;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 10px 140px 10px;
+            overflow-x: hidden;
+        }
+
+        /* Sticky Mobile Header */
+        .mobile-header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            width: 100%;
+            max-width: 440px;
+            background: rgba(15, 23, 42, 0.96);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .stat-block {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-label {
+            font-size: 0.62rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .stat-val {
+            font-size: 1.1rem;
+            font-weight: 800;
+            font-family: ui-monospace, Menlo, Monaco, monospace;
+        }
+
+        .timer-color { color: #38bdf8; }
+        .record-color { color: var(--gold); }
+
+        .btn-group {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn {
+            border: none;
+            padding: 7px 11px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.15s;
+        }
+
+        .btn:active { opacity: 0.8; }
+        .btn-reset { background: #475569; color: #fff; }
+        .btn-submit { background: var(--primary); color: #fff; }
+
+        /* Real-Time Live HUD */
+        .hud-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(11, 17, 32, 0.7);
+            border-radius: 6px;
+            padding: 4px 10px;
+            margin-bottom: 8px;
+            font-size: 0.78rem;
+            font-family: ui-monospace, Menlo, Monaco, monospace;
+        }
+
+        .ghost-faster { color: #4ade80; font-weight: bold; }
+        .ghost-slower { color: #f87171; font-weight: bold; }
+        .ghost-neutral { color: var(--text-muted); }
+        .cpm-val { color: #38bdf8; font-weight: bold; }
+
+        /* Progress Bar */
+        .progress-wrapper {
+            width: 100%;
+            background: #0f172a;
+            border-radius: 6px;
+            height: 5px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: #38bdf8;
+            transition: width 0.3s ease;
+        }
+
+        /* Filter Accordion */
+        .filter-drawer {
+            width: 100%;
+            max-width: 440px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            font-size: 0.85rem;
+        }
+
+        .filter-drawer summary {
+            padding: 9px 12px;
+            font-weight: 700;
+            color: #38bdf8;
+            cursor: pointer;
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .filter-drawer summary::-webkit-details-marker { display: none; }
+        .filter-drawer summary::after {
+            content: '▲';
+            font-size: 0.7rem;
+            transition: transform 0.2s;
+        }
+
+        .filter-drawer:not([open]) summary::after {
+            transform: rotate(180deg);
+        }
+
+        .filter-content {
+            padding: 8px 12px 10px 12px;
+            border-top: 1px solid var(--border);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .filter-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .filter-item input {
+            accent-color: var(--primary);
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Card Stage */
+        #stage-container {
+            width: 100%;
+            max-width: 440px;
+        }
+
+        .unit-stage-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .stage-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 14px;
+        }
+
+        .stage-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+
+        .stage-badge {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            background: #0f172a;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        /* 1-Column Math Input Grid */
+        .math-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+
+        .math-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--surface-sub);
+            padding: 8px 14px;
+            border-radius: 8px;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+
+        .math-label {
+            font-size: 1.05rem;
+            font-weight: 600;
+            font-family: ui-monospace, Menlo, Monaco, monospace;
+            color: #e2e8f0;
+            user-select: none;
+        }
+
+        input.box-input {
+            width: 90px;
+            height: 38px;
+            font-size: 1.15rem;
+            font-weight: 700;
+            text-align: center;
+            background: #0b1120;
+            border: 1.5px solid #475569;
+            border-radius: 6px;
+            color: #fff;
+            outline: none;
+            font-family: ui-monospace, Menlo, Monaco, monospace;
+            transition: border-color 0.15s, background-color 0.15s;
+        }
+
+        input.box-input:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 6px rgba(56, 189, 248, 0.4);
+        }
+
+        input.box-input.correct {
+            background: #064e3b !important;
+            border-color: var(--success) !important;
+            color: #bbf7d0 !important;
+        }
+
+        input.box-input.wrong {
+            background: #450a0a !important;
+            border-color: var(--error) !important;
+            animation: shake 0.25s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-3px); }
+            75% { transform: translateX(3px); }
+        }
+
+        /* Summary */
+        .summary-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 18px;
+            text-align: center;
+        }
+
+        .summary-card h2 {
+            color: #38bdf8;
+            margin-bottom: 12px;
+            font-size: 1.25rem;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 14px 0;
+        }
+
+        .sum-item {
+            background: var(--surface-sub);
+            padding: 8px;
+            border-radius: 8px;
+        }
+
+        .sum-item span {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            display: block;
+        }
+
+        .sum-item strong {
+            font-size: 1.1rem;
+            font-family: monospace;
+            color: #f8fafc;
+        }
+
+        .btn-weakspot {
+            background: #ea580c;
+            color: #fff;
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+        }
+        .btn-weakspot:active { background: #c2410c; }
+
+        #record-alert {
+            margin-top: 10px;
+            background: #166534;
+            color: #dcfce7;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .incomplete-warning {
+            color: #fbbf24;
+            font-size: 0.8rem;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="mobile-header" id="mobile-header">
+        <div class="header-top">
+            <div class="stat-block">
+                <span class="stat-label">Timer</span>
+                <span id="timer-display" class="stat-val timer-color">00:00:00</span>
+            </div>
+            <div class="stat-block">
+                <span class="stat-label">Best Record</span>
+                <span id="best-display" class="stat-val record-color">--:--:--</span>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-reset" onclick="resetCurrentFlow()">Reset</button>
+                <button class="btn btn-submit" onclick="submitTotalPractice()">Submit</button>
+            </div>
+        </div>
+
+        <div class="hud-row">
+            <div>Speed: <span id="cpm-display" class="cpm-val">0.0</span> <span style="font-size:0.65rem; color:var(--text-muted)">CPM</span></div>
+            <div>Pace: <span id="ghost-split" class="ghost-neutral">--</span></div>
+        </div>
+
+        <div class="progress-wrapper">
+            <div id="progress-bar" class="progress-bar"></div>
+        </div>
+    </header>
+
+    <details class="filter-drawer" id="filter-drawer" open>
+        <summary>Filter Sections & Tables</summary>
+        <div class="filter-content" id="filter-checkboxes"></div>
+    </details>
+
+    <main id="stage-container"></main>
+
+    <script>
+        const UNITS_CATALOG = [
+            { name: 'Table 12', key: 't12', items: [1,2,3,4,5,6,7,8,9,10].map(m => ({ label: `12 × ${m}`, ans: 12 * m })) },
+            { name: 'Table 13', key: 't13', items: [1,2,3,4,5,6,7,8,9,10].map(m => ({ label: `13 × ${m}`, ans: 13 * m })) },
+            { name: 'Table 14', key: 't14', items: [1,2,3,4,5,6,7,8,9,10].map(m => ({ label: `14 × ${m}`, ans: 14 * m })) },
+            { name: 'Table 16', key: 't16', items: [1,2,3,4,5,6,7,8,9,10].map(m => ({ label: `16 × ${m}`, ans: 16 * m })) },
+            { name: 'Table 17', key: 't17', items: [1,2,3,4,5,6,7,8,9,10].map(m => ({ label: `17 × ${m}`, ans: 17 * m })) },
+            { name: 'Table 18', key: 't18', items: [1,2,3,4,5,6,7,8,9,10].map(m => ({ label: `18 × ${m}`, ans: 18 * m })) },
+            { name: 'Table 19', key: 't19', items: [1,2,3,4,5,6,7,8,9,10].map(m => ({ label: `19 × ${m}`, ans: 19 * m })) },
+            { name: 'Table 21', key: 't21', items: [1,2,3,4,5,6,7,8,9,10].map(m => ({ label: `21 × ${m}`, ans: 21 * m })) },
+            { name: 'Table 23', key: 't23', items: [1,2,3,4,5,6,7,8,9,10].map(m => ({ label: `23 × ${m}`, ans: 23 * m })) },
+            { name: 'Table 24', key: 't24', items: [1,2,3,4,5,6,7,8,9,10].map(m => ({ label: `24 × ${m}`, ans: 24 * m })) },
+            { name: 'Table 26', key: 't26', items: [1,2,3,4,5,6,7,8,9,10].map(m => ({ label: `26 × ${m}`, ans: 26 * m })) },
+            { name: 'Table 27', key: 't27', items: [1,2,3,4,5,6,7,8,9,10].map(m => ({ label: `27 × ${m}`, ans: 27 * m })) },
+            { name: 'Table 28', key: 't28', items: [1,2,3,4,5,6,7,8,9,10].map(m => ({ label: `28 × ${m}`, ans: 28 * m })) },
+            { name: 'Table 29', key: 't29', items: [1,2,3,4,5,6,7,8,9,10].map(m => ({ label: `29 × ${m}`, ans: 29 * m })) },
+            {
+                name: 'Squares',
+                key: 'squares',
+                items: [
+                    16, 17, 18, 19, 23, 24, 26, 27, 28, 29, 31, 32, 33, 34, 35,
+                    36, 37, 38, 39, 41, 42, 43, 44, 45, 46, 47, 48, 49
+                ].map(n => ({ label: `${n}²`, ans: n * n }))
+            },
+            {
+                name: 'Cubes',
+                key: 'cubes',
+                items: [
+                    6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25
+                ].map(n => ({ label: `${n}³`, ans: n ** 3 }))
+            },
+            {
+                name: 'Powers',
+                key: 'powers',
+                items: [
+                    { label: '2⁴', ans: 16 }, { label: '2⁵', ans: 32 }, { label: '2⁶', ans: 64 },
+                    { label: '2⁷', ans: 128 }, { label: '2⁸', ans: 256 }, { label: '2⁹', ans: 512 },
+                    { label: '2¹⁰', ans: 1024 }, { label: '2¹¹', ans: 2048 }, { label: '2¹²', ans: 4096 },
+                    { label: '3⁴', ans: 81 }, { label: '3⁵', ans: 243 }, { label: '3⁶', ans: 729 }, { label: '3⁷', ans: 2187 },
+                    { label: '4³', ans: 64 }, { label: '4⁴', ans: 256 }, { label: '4⁵', ans: 1024 },
+                    { label: '5⁴', ans: 625 }, { label: '5⁵', ans: 3125 },
+                    { label: '6³', ans: 216 }, { label: '6⁴', ans: 1296 },
+                    { label: '8⁴', ans: 4096 }, { label: '8⁵', ans: 32768 }
+                ]
+            }
+        ];
+
+        let activeQueue = [];
+        let currentUnitIndex = 0;
+        let unitInputs = [];
+        let timerInterval = null;
+        let inactivityTimeout = null;
+        let secondsElapsed = 0;
+        let isTimerRunning = false;
+        let totalAnsweredCount = 0;
+        let totalExpectedCount = 0;
+
+        let currentRunSplits = {};
+        let savedSplits = {};
+        let stumbledItems = new Map();
+
+        const timerDisplay = document.getElementById('timer-display');
+        const bestDisplay = document.getElementById('best-display');
+        const stageContainer = document.getElementById('stage-container');
+        const filterBox = document.getElementById('filter-checkboxes');
+        const progressBar = document.getElementById('progress-bar');
+        const cpmDisplay = document.getElementById('cpm-display');
+        const ghostSplit = document.getElementById('ghost-split');
+        const filterDrawer = document.getElementById('filter-drawer');
+
+        function formatTime(totalSec) {
+            const h = String(Math.floor(totalSec / 3600)).padStart(2, '0');
+            const m = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
+            const s = String(totalSec % 60).padStart(2, '0');
+            return `${h}:${m}:${s}`;
+        }
+
+        // Generates unique scope key based on checked items
+        function getActiveScopeKey() {
+            const checkedKeys = Array.from(filterBox.querySelectorAll('input[type="checkbox"]:checked'))
+                .map(cb => cb.getAttribute('data-key'))
+                .sort()
+                .join('_');
+            return checkedKeys ? `speed_math_best_${checkedKeys}` : null;
+        }
+
+        function loadPersistedRecords() {
+            const scopeKey = getActiveScopeKey();
+            if (!scopeKey) {
+                bestDisplay.innerText = "--:--:--";
+                return;
+            }
+            const saved = localStorage.getItem(scopeKey);
+            if (saved) {
+                bestDisplay.innerText = formatTime(parseInt(saved, 10));
+            } else {
+                bestDisplay.innerText = "--:--:--";
+            }
+            
+            const splits = localStorage.getItem(`${scopeKey}_splits`);
+            if (splits) {
+                try { savedSplits = JSON.parse(splits); } catch(e) { savedSplits = {}; }
+            } else {
+                savedSplits = {};
+            }
+        }
+
+        function triggerHaptic(type) {
+            if (!("vibrate" in navigator)) return;
+            try {
+                if (type === 'success') {
+                    navigator.vibrate(35);
+                } else if (type === 'error') {
+                    navigator.vibrate([60, 40, 60]);
+                }
+            } catch(e) {}
+        }
+
+        function updateLiveStats() {
+            if (secondsElapsed > 0) {
+                const cpm = ((totalAnsweredCount / secondsElapsed) * 60).toFixed(1);
+                cpmDisplay.innerText = cpm;
+            } else {
+                cpmDisplay.innerText = "0.0";
+            }
+        }
+
+        function startTimer() {
+            if (isTimerRunning) return;
+            isTimerRunning = true;
+            timerInterval = setInterval(() => {
+                secondsElapsed++;
+                timerDisplay.innerText = formatTime(secondsElapsed);
+                updateLiveStats();
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            isTimerRunning = false;
+            clearInterval(timerInterval);
+        }
+
+        function triggerTypingActivity() {
+            startTimer();
+            clearTimeout(inactivityTimeout);
+            inactivityTimeout = setTimeout(pauseTimer, 10000);
+        }
+
+        function initFiltersUI() {
+            filterBox.innerHTML = '';
+            UNITS_CATALOG.forEach(unit => {
+                const label = document.createElement('label');
+                label.className = 'filter-item';
+                label.innerHTML = `
+                    <input type="checkbox" data-key="${unit.key}" checked>
+                    <span>${unit.name}</span>
+                `;
+                label.querySelector('input').addEventListener('change', reloadQueue);
+                filterBox.appendChild(label);
+            });
+        }
+
+        function reloadQueue() {
+            const checkedKeys = new Set(
+                Array.from(filterBox.querySelectorAll('input[type="checkbox"]:checked'))
+                     .map(cb => cb.getAttribute('data-key'))
+            );
+
+            activeQueue = UNITS_CATALOG.filter(u => checkedKeys.has(u.key));
+            totalExpectedCount = activeQueue.reduce((acc, u) => acc + u.items.length, 0);
+            totalAnsweredCount = 0;
+            currentUnitIndex = 0;
+            currentRunSplits = {};
+            stumbledItems.clear();
+            ghostSplit.innerText = "--";
+            ghostSplit.className = "ghost-neutral";
+            resetTimer();
+            loadPersistedRecords();
+
+            if (activeQueue.length > 0) {
+                renderUnitStage(0);
+            } else {
+                stageContainer.innerHTML = `<div class="summary-card"><p>Please select at least one unit to practice.</p></div>`;
+            }
+        }
+
+        function renderUnitStage(idx) {
+            currentUnitIndex = idx;
+            stageContainer.innerHTML = '';
+            unitInputs = [];
+
+            if (idx >= activeQueue.length) {
+                submitTotalPractice();
+                return;
+            }
+
+            const unit = activeQueue[idx];
+            updateProgressBar();
+
+            const card = document.createElement('div');
+            card.className = 'unit-stage-card';
+
+            const header = document.createElement('div');
+            header.className = 'stage-header';
+            header.innerHTML = `
+                <span class="stage-title">${unit.name}</span>
+                <span class="stage-badge">Part ${idx + 1} of ${activeQueue.length}</span>
+            `;
+            card.appendChild(header);
+
+            const grid = document.createElement('div');
+            grid.className = 'math-grid';
+
+            unit.items.forEach(item => {
+                const row = document.createElement('div');
+                row.className = 'math-row';
+                row.innerHTML = `<span class="math-label">${item.label}</span>`;
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.inputMode = 'numeric';
+                input.pattern = '[0-9]*';
+                input.className = 'box-input';
+                input.dataset.answer = item.ans;
+                input.dataset.label = item.label;
+
+                input.addEventListener('input', () => onInputCheck(input));
+                row.appendChild(input);
+                grid.appendChild(row);
+                unitInputs.push(input);
+            });
+
+            card.appendChild(grid);
+            stageContainer.appendChild(card);
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            if (unitInputs[0]) {
+                unitInputs[0].focus();
+            }
+        }
+
+        function smoothScrollToActiveInput(inputElement) {
+            const targetRow = inputElement.closest('.math-row') || inputElement;
+            const header = document.getElementById('mobile-header');
+            const headerHeight = header ? header.offsetHeight : 80;
+
+            const targetRect = targetRow.getBoundingClientRect();
+            const targetAbsoluteTop = window.pageYOffset + targetRect.top;
+            const desiredScrollY = targetAbsoluteTop - headerHeight - 16;
+
+            window.scrollTo({
+                top: Math.max(0, desiredScrollY),
+                behavior: 'smooth'
+            });
+        }
+
+        function onInputCheck(input) {
+            triggerTypingActivity();
+            
+            if (filterDrawer.open) {
+                filterDrawer.open = false;
+            }
+
+            const val = input.value.trim();
+            const expected = input.dataset.answer;
+
+            if (val === '') {
+                input.classList.remove('correct', 'wrong');
+                return;
+            }
+
+            if (val === expected) {
+                input.classList.remove('wrong');
+                input.classList.add('correct');
+                input.disabled = true;
+                triggerHaptic('success');
+                totalAnsweredCount++;
+                updateProgressBar();
+                updateLiveStats();
+
+                const currIdx = unitInputs.indexOf(input);
+                if (currIdx >= 0 && currIdx < unitInputs.length - 1) {
+                    const nextInput = unitInputs[currIdx + 1];
+                    nextInput.focus();
+
+                    // Smooth scroll trigger every 3 answers
+                    const solvedInCurrentTable = currIdx + 1;
+                    const isEveryThird = (solvedInCurrentTable % 3 === 0);
+                    const isLastBox = (currIdx + 1 === unitInputs.length - 1);
+
+                    if (isEveryThird || isLastBox) {
+                        smoothScrollToActiveInput(nextInput);
+                    }
+                } else if (currIdx === unitInputs.length - 1) {
+                    const unitKey = activeQueue[currentUnitIndex].key;
+                    currentRunSplits[unitKey] = secondsElapsed;
+
+                    if (savedSplits[unitKey] !== undefined) {
+                        const diff = secondsElapsed - savedSplits[unitKey];
+                        if (diff < 0) {
+                            ghostSplit.innerText = `${diff.toFixed(0)}s (Faster)`;
+                            ghostSplit.className = "ghost-faster";
+                        } else if (diff > 0) {
+                            ghostSplit.innerText = `+${diff.toFixed(0)}s (Behind)`;
+                            ghostSplit.className = "ghost-slower";
+                        } else {
+                            ghostSplit.innerText = `±0s (On Pace)`;
+                            ghostSplit.className = "ghost-neutral";
+                        }
+                    }
+
+                    setTimeout(() => {
+                        renderUnitStage(currentUnitIndex + 1);
+                    }, 250);
+                }
+            } else {
+                if (expected.startsWith(val)) {
+                    input.classList.remove('wrong', 'correct');
+                } else {
+                    input.classList.add('wrong');
+                    input.classList.remove('correct');
+                    triggerHaptic('error');
+
+                    stumbledItems.set(input.dataset.label, {
+                        label: input.dataset.label,
+                        ans: expected
+                    });
+                }
+            }
+        }
+
+        function updateProgressBar() {
+            if (totalExpectedCount === 0) return;
+            const pct = Math.round((totalAnsweredCount / totalExpectedCount) * 100);
+            progressBar.style.width = `${pct}%`;
+        }
+
+        function submitTotalPractice() {
+            pauseTimer();
+            clearTimeout(inactivityTimeout);
+
+            const accuracy = totalExpectedCount > 0 ? Math.round((totalAnsweredCount / totalExpectedCount) * 100) : 0;
+            
+            // STRICT RULE: Record qualifies ONLY if 100% of all selected questions are solved
+            const isFullPass = (totalAnsweredCount === totalExpectedCount && totalExpectedCount > 0);
+            let isNewBest = false;
+
+            const scopeKey = getActiveScopeKey();
+
+            if (isFullPass && scopeKey) {
+                const prev = localStorage.getItem(scopeKey);
+                if (!prev || secondsElapsed < parseInt(prev, 10)) {
+                    localStorage.setItem(scopeKey, secondsElapsed);
+                    localStorage.setItem(`${scopeKey}_splits`, JSON.stringify(currentRunSplits));
+                    bestDisplay.innerText = formatTime(secondsElapsed);
+                    isNewBest = true;
+                }
+            }
+
+            const cpmFinal = secondsElapsed > 0 ? ((totalAnsweredCount / secondsElapsed) * 60).toFixed(1) : 0;
+            const hasWeakSpots = stumbledItems.size > 0;
+
+            stageContainer.innerHTML = `
+                <div class="summary-card">
+                    <h2>Session Summary</h2>
+                    <div class="summary-grid">
+                        <div class="sum-item">
+                            <span>Time Spent</span>
+                            <strong>${formatTime(secondsElapsed)}</strong>
+                        </div>
+                        <div class="sum-item">
+                            <span>Solved</span>
+                            <strong>${totalAnsweredCount} / ${totalExpectedCount}</strong>
+                        </div>
+                        <div class="sum-item">
+                            <span>Accuracy</span>
+                            <strong>${accuracy}%</strong>
+                        </div>
+                        <div class="sum-item">
+                            <span>Final Speed</span>
+                            <strong>${cpmFinal} CPM</strong>
+                        </div>
+                    </div>
+
+                    ${isNewBest ? '<div id="record-alert" style="display:block;">🏆 New Personal Record & Splits Saved!</div>' : ''}
+                    
+                    ${!isFullPass ? '<div class="incomplete-warning">⚠️ Drill incomplete: Complete 100% of questions to qualify for a Best Record.</div>' : ''}
+
+                    ${hasWeakSpots ? `
+                        <button class="btn btn-weakspot" onclick="startWeakSpotDrill()">
+                            🎯 Practice Weak Spots (${stumbledItems.size} Stumbles)
+                        </button>
+                    ` : ''}
+
+                    <button class="btn btn-submit" style="width: 100%; margin-top: 10px; padding: 10px;" onclick="reloadQueue()">
+                        Start Again
+                    </button>
+                </div>
+            `;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function startWeakSpotDrill() {
+            const weakItems = Array.from(stumbledItems.values());
+            activeQueue = [{
+                name: 'Weak Spots Drill',
+                key: 'weakspots',
+                items: weakItems
+            }];
+            totalExpectedCount = weakItems.length;
+            totalAnsweredCount = 0;
+            currentUnitIndex = 0;
+            stumbledItems.clear();
+            ghostSplit.innerText = "--";
+            ghostSplit.className = "ghost-neutral";
+            resetTimer();
+            renderUnitStage(0);
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            clearTimeout(inactivityTimeout);
+            secondsElapsed = 0;
+            timerDisplay.innerText = "00:00:00";
+            updateLiveStats();
+        }
+
+        function resetCurrentFlow() {
+            reloadQueue();
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initFiltersUI();
+            reloadQueue();
+        });
+    </script>
+</body>
+</html>
